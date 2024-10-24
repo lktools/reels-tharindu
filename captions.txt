@@ -3,3 +3,5 @@ sample text 01
 sample text 02
 ----
 කතා කරන්න මගේ නම {name}.. මැසේජ් එකක් දාන්න මගේ {call} නම්බර් එක දෙන්නම්..
+----
+sample text 03S
