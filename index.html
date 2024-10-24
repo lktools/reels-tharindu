@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Favicon link -->
+    <link rel="icon" type="image/png" href="favicon.png">
+    <title>Reels Caption with Hashtags</title>
+    <style>
+        /* Base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+            position: relative;
+        }
+        :root {
+        --background-color: #000000;
+        --text-color: #ffffff;
+        --primary-color: #f15c95;
+        --box-background-light: rgb(34 13 18 / 77%);
+        --button-bg: #ef476f;
+        --button-hover-bg: #f4a261;
+        }
+
+        [data-theme="dark"] {
+            /* Dark mode colors */
+            --background-color: #222020;
+            --text-color: #e0e0e0;
+            --primary-color: #FF9800;
+            --box-background-dark: #242323; /* Lighter than dark background */
+            --button-bg: #FF9800;
+            --button-hover-bg: #FF5722;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 18px;
+            background-color: #202020;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        #caption-box {
+            margin-bottom: 20px;
+            padding: 20px;
+            font-size: 18px;
+            border: 2px solid var(--primary-color);
+            border-radius: 5px;
+            background-color: var(--box-background-light);
+            height: 150px;  /* Fixed height */
+            width: 600px; /* Fixed width */
+            overflow: hidden; /* Prevent resizing */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            transition: background-color 0.3s;
+            white-space: pre-wrap; /* Preserve whitespace */
+            overflow-wrap: break-word; /* Break long words */
+        }
+
+        [data-theme="dark"] #caption-box {
+            background-color: var(--box-background-dark); /* Lighter box background for dark mode */
+        }
+
+        #copy-button, #reset-button {
+            padding: 12px 25px;
+            font-size: 16px;
+            background-color: var(--button-bg);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin: 5px; /* Add margin for spacing */
+        }
+
+        #copy-button:hover, #reset-button:hover {
+            background-color: var(--button-hover-bg);
+        }
+
+        .theme-toggle {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background-color: var(--button-bg);
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .theme-toggle:hover {
+            background-color: var(--button-hover-bg);
+        }
+        h1 {
+        padding-bottom: 20px;
+        }
+        /* Style for caption info display */
+        .caption-info {
+            margin-top: 10px;
+            font-size: 16px;
+            color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Reels Captions with #Tags</h1>
+        <div id="caption-box">Loading...</div>
+        <button id="copy-button" onclick="copyAndNext()">Copy & Next</button>
+        <button id="reset-button" onclick="resetCaptions()">Reset Captions</button>
+        <div class="caption-info">
+            <span id="total-captions">Total Captions: 0</span> |
+            <span id="remaining-captions">Remaining: 0</span>
+        </div>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()">Toggle Dark Mode</button>
+
+    <script>
+        let captions = [];
+        let hashtags = [];
+        let usedCaptions = JSON.parse(localStorage.getItem('usedCaptions')) || [];
+        let emojis = [];
+        let countries = [];
+        let jobs = [];
+        let names = [];
+        let calls = [];
+        let locations = [];
+        let ages = [];
+
+        // Function to load captions, hashtags, and additional content from text files
+        async function loadContent() {
+            try {
+                const captionsResponse = await fetch('captions.txt');
+                const hashtagsResponse = await fetch('hashtags.txt');
+                const emojisResponse = await fetch('emojis.txt');
+                const countriesResponse = await fetch('countries.txt');
+                const jobsResponse = await fetch('jobs.txt');
+                const namesResponse = await fetch('names.txt');
+                const callsResponse = await fetch('calls.txt');
+                const locationsResponse = await fetch('locations.txt');
+                const agesResponse = await fetch('ages.txt');
+
+                const captionsText = await captionsResponse.text();
+                const hashtagsText = await hashtagsResponse.text();
+                const emojisText = await emojisResponse.text();
+                const countriesText = await countriesResponse.text();
+                const jobsText = await jobsResponse.text();
+                const namesText = await namesResponse.text();
+                const callsText = await callsResponse.text();
+                const locationsText = await locationsResponse.text();
+                const agesText = await agesResponse.text();
+
+                captions = captionsText.split('----').map(caption => caption.trim());
+                hashtags = hashtagsText.split('\n').map(tag => tag.trim()).filter(tag => tag !== '');
+                emojis = emojisText.split('\n').map(emoji => emoji.trim()).filter(emoji => emoji !== '');
+                countries = countriesText.split('\n').map(country => country.trim()).filter(country => country !== '');
+                jobs = jobsText.split('\n').map(job => job.trim()).filter(job => job !== '');
+                names = namesText.split('\n').map(name => name.trim()).filter(name => name !== '');
+                calls = callsText.split('\n').map(call => call.trim()).filter(call => call !== '');
+                locations = locationsText.split('\n').map(location => location.trim()).filter(location => location !== '');
+                ages = agesText.split('\n').map(age => age.trim()).filter(age => age !== '');
+
+                captions = captions.filter(caption => !usedCaptions.includes(caption));
+                shuffleCaptions();
+                updateCaptionInfo();
+                showCaption();
+            } catch (error) {
+                console.error('Error loading content:', error);
+                document.getElementById('caption-box').textContent = 'Error loading content!';
+            }
+        }
+
+        // Shuffle the captions
+        function shuffleCaptions() {
+            for (let i = captions.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [captions[i], captions[j]] = [captions[j], captions[i]];
+            }
+        }
+
+        // Get random hashtags
+        function getRandomHashtags() {
+            let shuffledHashtags = [...hashtags].sort(() => 0.5 - Math.random());
+            return shuffledHashtags.slice(0, 5).join(' ');
+        }
+
+        // Show caption with hashtags
+        function showCaption() {
+            const captionBox = document.getElementById('caption-box');
+
+            if (captions.length === 0) {
+                captionBox.textContent = "No more captions!";
+                document.getElementById('copy-button').disabled = true;
+                return;
+            }
+
+            const nextCaption = captions.splice(Math.floor(Math.random() * captions.length), 1)[0];
+            const hashtagsSet = getRandomHashtags();
+            
+            // Get random emoji, country, job, name, call, location, and age
+            const emoji = getRandomItem(emojis);
+            const country = getRandomItem(countries);
+            const job = getRandomItem(jobs);
+            const name = getRandomItem(names);
+            const call = getRandomItem(calls);
+            const location = getRandomItem(locations);
+            const age = getRandomItem(ages);
+
+            // Replace placeholders with actual values
+            const captionWithPlaceholders = nextCaption
+                .replace('{emoji}', emoji)
+                .replace('{country}', country)
+                .replace('{job}', job)
+                .replace('{name}', name)
+                .replace('{call}', call)
+                .replace('{location}', location)
+                .replace('{age}', age);
+            const finalCaption = `${captionWithPlaceholders}\n${hashtagsSet}`;
+
+            usedCaptions.push(nextCaption);
+            localStorage.setItem('usedCaptions', JSON.stringify(usedCaptions));
+
+captionBox.textContent = finalCaption;
+updateCaptionInfo();
+}
+
+// Function to get a random item from an array
+function getRandomItem(arr) {
+return arr[Math.floor(Math.random() * arr.length)];
+}
+
+// Copy current caption and show next one
+function copyAndNext() {
+const captionBox = document.getElementById('caption-box');
+const currentCaption = captionBox.textContent;
+
+navigator.clipboard.writeText(currentCaption)
+    .then(() => {
+        console.log('Copied to clipboard:', currentCaption);
+    })
+    .catch(err => {
+        console.error('Could not copy text:', err);
+    });
+
+showCaption();
+}
+
+// Update the captions info (total and remaining)
+function updateCaptionInfo() {
+document.getElementById('total-captions').textContent = `Total Captions: ${captions.length + usedCaptions.length}`;
+document.getElementById('remaining-captions').textContent = `Remaining: ${captions.length}`;
+}
+
+// Reset the captions
+function resetCaptions() {
+usedCaptions = [];
+localStorage.removeItem('usedCaptions'); // Remove used captions from local storage
+loadContent(); // Reload captions and reset
+document.getElementById('copy-button').disabled = false; // Re-enable copy button
+console.log('Captions reset!');
+}
+
+// Dark mode toggle
+function toggleTheme() {
+const currentTheme = document.documentElement.getAttribute('data-theme');
+if (currentTheme === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'light');
+} else {
+    document.documentElement.setAttribute('data-theme', 'dark');
+}
+}
+
+// Load captions and additional data on page load
+window.onload = loadContent;
+</script>
+
+</body>
+</html>
